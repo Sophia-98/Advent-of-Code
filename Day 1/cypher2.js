@@ -1,4 +1,17 @@
 const fs = require("fs");
+const numbers = {
+  1: "one",
+  2: "two",
+  3: "three",
+  4: "four",
+  5: "five",
+  6: "six",
+  7: "seven",
+  8: "eight",
+  9: "nine",
+};
+
+const digits = [];
 
 /*function to open and add contents into an array*/
 function syncReadFile(filename) {
@@ -13,41 +26,59 @@ function syncReadFile(filename) {
   }
 }
 
-/*main function that centralises all*/
-const processFile = () => {
-  const fileContentsArray = syncReadFile("input.txt");
+/*include positions of all duplicates*/
+const findAllPositions = (str, searchString) => {
+  let indices = [];
+  /*makes sure the index starts are the beginning of the string*/
+  let index = -1;
 
-  const pairs = findNumbers(fileContentsArray);
+  /*will continue to find the index of duplicates untill indexOf is unable to find anymore*/
+  while ((index = str.indexOf(searchString, index + 1)) !== -1) {
+    /*add index to array*/
+    indices.push(index);
+  }
 
-  const totalSum = sum(pairs);
-
-  console.log(totalSum);
+  return indices;
 };
 
-/* loops through array and finds teh first and last numbers*/
-const findNumbers = (array) => {
-  let digits = []; /*declares new array*/
+const findNum = (str) => {
+  for (let i = 0; i < str.length; i++) {
+    let matchingSubstrings = {};
 
-  for (let i = 0; i < array.length; i++) {
-    /*reverses new array everytime*/
-    let reversed = [...array[i]].reverse().join("");
-    /*concatenates the two strings*/
-    let concatenateDigits = checkDigits(array[i]) + checkDigits(reversed);
-    /* turns string back into integar and adds this to digits array*/
-    digits.push(parseInt(concatenateDigits, 10));
+    /*find an integars within string and add to object*/
+    for (let j = 0; j < str[i].length; j++) {
+      if (str[i][j] >= "0" && str[i][j] <= "9") {
+        matchingSubstrings[j] = str[i][j]; // Store digits within object
+      }
+    }
+
+    /*find all spelled numbers within string and add to object*/
+    for (const key in numbers) {
+      if (str[i].includes(numbers[key])) {
+        /*find array of duplicate positions*/
+        const positions = findAllPositions(str[i], numbers[key]);
+
+        /*for every position, add the corresponding value*/
+        positions.forEach((position) => {
+          matchingSubstrings[position] = key;
+        });
+      }
+    }
+
+    /*find the first and last key within object*/
+    const keys = Object.keys(matchingSubstrings);
+    const firstKey = keys[0];
+    const lastKey = keys[keys.length - 1];
+
+    /* concat the values*/
+    concatNum = parseInt(
+      matchingSubstrings[firstKey].concat(matchingSubstrings[lastKey])
+    );
+
+    digits.push(parseInt(concatNum, 10));
   }
 
   return digits;
-};
-
-/*loops through string and checks if it matches any numbers*/
-const checkDigits = (str) => {
-  for (let j = 0; j < str.length; j++) {
-    if (str[j] >= "0" && str[j] <= "9") {
-      /* for loop breaks and returns the number found*/
-      return str[j];
-    }
-  }
 };
 
 const sum = (arr) => {
@@ -58,6 +89,16 @@ const sum = (arr) => {
   });
 
   return total;
+};
+
+const processFile = () => {
+  /* add file contents to an array*/
+  const fileContentsArray = syncReadFile("./input.txt");
+
+  const pairs = findNum(fileContentsArray);
+  console.log(pairs);
+  const totalSum = sum(pairs);
+  console.log(totalSum);
 };
 
 processFile();
